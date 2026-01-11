@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Drive-Through Finder</title>
+    <style>
+        :root {
+            --color-bg-primary: rgba(252, 252, 249, 1);
+            --color-surface: rgba(255, 255, 253, 1);
+            --color-text: rgba(19, 52, 59, 1);
+            --color-text-secondary: rgba(98, 108, 113, 1);
+            --color-primary: rgba(33, 128, 141, 1);
+            --color-primary-hover: rgba(29, 116, 128, 1);
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-success: rgba(33, 128, 141, 1);
+            --color-error: rgba(192, 21, 47, 1);
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --radius-base: 8px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: var(--space-20);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg-primary);
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: var(--space-24);
+        }
+
+        h1 {
+            margin: 0 0 var(--space-8) 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--color-surface);
+            border-radius: var(--radius-base);
+            border: 1px solid var(--color-border);
+            padding: var(--space-20);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-24);
+        }
+
+        .card h2 {
+            margin: 0 0 var(--space-16) 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: var(--space-16);
+        }
+
+        label {
+            display: block;
+            margin-bottom: var(--space-8);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            color: var(--color-text);
+            transition: border-color 150ms ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(33, 128, 141, 0.1);
+        }
+
+        .btn {
+            padding: var(--space-12) var(--space-16);
+            border: none;
+            border-radius: var(--radius-base);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 150ms ease;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-primary:disabled {
+            background: var(--color-text-secondary);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .search-wrapper {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: var(--space-12);
+            margin-bottom: var(--space-24);
+        }
+
+        @media (max-width: 768px) {
+            .search-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-20);
+            color: var(--color-text-secondary);
+            font-size: 14px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(33, 128, 141, 0.1);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+            margin-right: var(--space-12);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-16);
+        }
+
+        .result-item {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            padding: var(--space-16);
+            background: rgba(33, 128, 141, 0.02);
+            transition: all 150ms ease;
+        }
+
+        .result-item:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: var(--space-8);
+        }
+
+        .result-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .result-distance {
+            font-size: 13px;
+            color: var(--color-success);
+            font-weight: 600;
+        }
+
+        .result-info {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .result-address {
+            margin-top: var(--space-8);
+            padding-top: var(--space-8);
+            border-top: 1px solid var(--color-border);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: var(--space-16);
+            margin-top: var(--space-8);
+            font-size: 12px;
+        }
+
+        .rating {
+            color: #d97706;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: rgba(33, 128, 141, 0.05);
+            padding: var(--space-12);
+            border-left: 3px solid var(--color-primary);
+            border-radius: 4px;
+            margin-top: var(--space-16);
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .error-message {
+            background: rgba(192, 21, 47, 0.1);
+            border-left: 3px solid var(--color-error);
+            padding: var(--space-12);
+            border-radius: 4px;
+            color: var(--color-error);
+            font-size: 13px;
+            margin-bottom: var(--space-16);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-24);
+            color: var(--color-text-secondary);
+        }
+
+        .stats {
+            display: flex;
+            gap: var(--space-24);
+            margin-bottom: var(--space-16);
+            padding: var(--space-16);
+            background: rgba(33, 128, 141, 0.05);
+            border-radius: var(--radius-base);
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: var(--space-4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Drive-Through Finder</h1>
+            <p class="subtitle">Find nearby drive-throughs by UK postcode</p>
+        </header>
+
+        <div class="card">
+            <div class="search-wrapper">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="postcode">Enter UK Postcode</label>
+                    <input type="text" id="postcode" placeholder="e.g., UB10 9LQ" autocomplete="off">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="radius">Radius (miles)</label>
+                    <input type="number" id="radius" value="5" min="1" max="20">
+                </div>
+                <div style="display: flex; align-items: flex-end; gap: var(--space-8);">
+                    <button class="btn btn-primary" id="search-btn">Search</button>
+                    <button class="btn btn-secondary" id="clear-btn">Clear</button>
+                </div>
+            </div>
+
+            <div id="error-container"></div>
+
+            <div id="stats-container" style="display: none;">
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="stat-postcode">—</div>
+                        <div class="stat-label">Postcode</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="stat-count">0</div>
+                        <div class="stat-label">Drive-Throughs Found</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="results-container" style="display: none;">
+                <h2>Results</h2>
+                <div class="results-list" id="results"></div>
+            </div>
+
+            <div id="loading-container" style="display: none;">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Searching for drive-throughs...
+                </div>
+            </div>
+
+            <div id="empty-state" style="display: none;">
+                <div class="empty-state">
+                    <p>No drive-throughs found nearby. Try adjusting your search radius.</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>How it works:</strong> Enter your postcode to find verified drive-throughs nearby. Results include addresses, phone numbers, and ratings.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const postcodeInput = document.getElementById('postcode');
+        const radiusInput = document.getElementById('radius');
+        const searchBtn = document.getElementById('search-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const loadingContainer = document.getElementById('loading-container');
+        const resultsContainer = document.getElementById('results-container');
+        const emptyState = document.getElementById('empty-state');
+        const statsContainer = document.getElementById('stats-container');
+        const resultsDiv = document.getElementById('results');
+        const errorContainer = document.getElementById('error-container');
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 3959;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        async function lookupPostcode(postcode) {
+            const response = await fetch(`https://api.postcodes.io/postcodes/${postcode.trim()}`);
+            const data = await response.json();
+            
+            if (!data.result) {
+                throw new Error('Postcode not found');
+            }
+            
+            return {
+                postcode: data.result.postcode,
+                lat: data.result.latitude,
+                lon: data.result.longitude
+            };
+        }
+
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            errorContainer.style.display = 'block';
+        }
+
+        function clearError() {
+            errorContainer.innerHTML = '';
+            errorContainer.style.display = 'none';
+        }
+
+        function displayResults(results, postcode) {
+            clearError();
+            
+            if (results.length === 0) {
+                resultsContainer.style.display = 'none';
+                emptyState.style.display = 'block';
+                statsContainer.style.display = 'block';
+                document.getElementById('stat-postcode').textContent = postcode;
+                document.getElementById('stat-count').textContent = '0';
+                return;
+            }
+
+            statsContainer.style.display = 'block';
+            resultsContainer.style.display = 'block';
+            emptyState.style.display = 'none';
+
+            document.getElementById('stat-postcode').textContent = postcode;
+            document.getElementById('stat-count').textContent = results.length;
+
+            resultsDiv.innerHTML = results.map(result => `
+                <div class="result-item">
+                    <div class="result-header">
+                        <div>
+                            <div class="result-name">${result.name}</div>
+                            <div class="result-info">${result.vicinity}</div>
+                        </div>
+                        <div class="result-distance">${result.distance.toFixed(1)} miles</div>
+                    </div>
+                    <div class="result-address">
+                        ${result.formatted_address ? `<strong>Address:</strong> ${result.formatted_address}<br>` : ''}
+                        ${result.formatted_phone_number ? `<strong>Phone:</strong> <a href="tel:${result.formatted_phone_number}" style="color: var(--color-primary)">${result.formatted_phone_number}</a><br>` : ''}
+                        ${result.opening_hours ? `<strong>Status:</strong> ${result.opening_hours.open_now ? '🟢 Open' : '🔴 Closed'}<br>` : ''}
+                    </div>
+                    ${result.rating ? `
+                    <div class="result-meta">
+                        <div>
+                            <span class="rating">★ ${result.rating.toFixed(1)}</span>
+                            <span>(${result.user_ratings_total} reviews)</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function search() {
+            const postcode = postcodeInput.value.trim();
+            
+            if (!postcode) {
+                showError('Please enter a postcode');
+                return;
+            }
+
+            loadingContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            emptyState.style.display = 'none';
+            statsContainer.style.display = 'none';
+            clearError();
+
+            try {
+                const coords = await lookupPostcode(postcode);
+                const radius = parseFloat(radiusInput.value);
+
+                // Call your Netlify backend function
+                const response = await fetch('/.netlify/functions/search', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        lat: coords.lat,
+                        lon: coords.lon,
+                        radius: radius
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.results || data.results.length === 0) {
+                    showError('No drive-throughs found. Try a larger radius.');
+                    emptyState.style.display = 'block';
+                    statsContainer.style.display = 'block';
+                    loadingContainer.style.display = 'none';
+                    return;
+                }
+
+                const processed = data.results
+                    .map(place => ({
+                        ...place,
+                        distance: calculateDistance(coords.lat, coords.lon, place.geometry.location.lat, place.geometry.location.lng)
+                    }))
+                    .filter(p => p.distance <= radius)
+                    .sort((a, b) => a.distance - b.distance);
+
+                displayResults(processed, coords.postcode);
+            } catch (error) {
+                showError(error.message || 'Search failed. Please try again.');
+                resultsContainer.style.display = 'none';
+                emptyState.style.display = 'none';
+            } finally {
+                loadingContainer.style.display = 'none';
+            }
+        }
+
+        function clearSearch() {
+            postcodeInput.value = '';
+            radiusInput.value = '5';
+            resultsContainer.style.display = 'none';
+            emptyState.style.display = 'none';
+            statsContainer.style.display = 'none';
+            clearError();
+            postcodeInput.focus();
+        }
+
+        searchBtn.addEventListener('click', search);
+        clearBtn.addEventListener('click', clearSearch);
+        postcodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') search();
+        });
+    </script>
+</body>
+</html>
